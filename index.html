@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crisis Management Dashboard | รพ.จิตเวชเลยราชนครินทร์</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Prompt', sans-serif; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        }
+        .bg-gradient-premium {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+        }
+    </style>
+</head>
+<body class="bg-gradient-premium min-h-screen flex items-center justify-center p-4">
+
+    <div id="app-container" class="w-full max-w-5xl">
+
+        <div class="text-center mb-8">
+            <img src="https://upload.wikimedia.org/wikipedia/th/thumb/7/7b/Ministry_of_Public_Health_Logo.svg/120px-Ministry_of_Public_Health_Logo.svg.png" alt="Logo" class="mx-auto h-24 mb-4 drop-shadow-lg">
+            <h1 class="text-3xl font-semibold text-white tracking-wide">โรงพยาบาลจิตเวชเลยราชนครินทร์</h1>
+            <p class="text-blue-200 mt-1">Crisis Management Dashboard</p>
+        </div>
+
+        <div id="loginView" class="glass-panel rounded-2xl p-8 max-w-md mx-auto transition-all duration-300">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">เข้าสู่ระบบ</h2>
+            <input type="text" id="logUser" placeholder="ชื่อผู้ใช้ (Username)" class="w-full bg-white/50 border border-gray-300 px-4 py-3 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <input type="password" id="logPass" placeholder="รหัสผ่าน (Password)" class="w-full bg-white/50 border border-gray-300 px-4 py-3 rounded-lg mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            
+            <div class="flex justify-end mb-6">
+                <button onclick="switchView('forgotView')" class="text-sm text-blue-600 hover:text-blue-800 font-medium">ลืมรหัสผ่าน?</button>
+            </div>
+            
+            <button onclick="login()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-3 rounded-lg shadow-lg transition duration-200">เข้าสู่ระบบ</button>
+            
+            <p id="logMsg" class="text-red-500 text-center mt-3 text-sm h-5"></p>
+            
+            <div class="mt-6 text-center border-t border-gray-200 pt-4">
+                <span class="text-gray-600 text-sm">ยังไม่มีบัญชีใช่หรือไม่?</span>
+                <button onclick="switchView('registerView')" class="text-blue-600 font-semibold hover:underline ml-1">สมัครสมาชิก</button>
+            </div>
+        </div>
+
+        <div id="registerView" class="glass-panel rounded-2xl p-8 max-w-lg mx-auto hidden transition-all duration-300">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">ลงทะเบียนผู้ใช้งานใหม่</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <input type="text" id="regUser" placeholder="ชื่อผู้ใช้" class="w-full border px-4 py-2 rounded-lg">
+                <input type="email" id="regEmail" placeholder="อีเมล (สำหรับกู้คืนรหัส)" class="w-full border px-4 py-2 rounded-lg">
+                <input type="password" id="regPass" placeholder="ตั้งรหัสผ่าน" class="w-full border px-4 py-2 rounded-lg">
+                <input type="password" id="regPassConfirm" placeholder="ยืนยันรหัสผ่าน" class="w-full border px-4 py-2 rounded-lg">
+            </div>
+
+            <select id="regRole" class="w-full border px-4 py-2 rounded-lg mb-4 text-gray-700">
+                <option value="" disabled selected>-- เลือกส่วนงานที่รับผิดชอบ --</option>
+                <option value="entry_env">ทีมบริหารจัดการระบบ ENV (น้ำ, ไฟ, น้ำมัน)</option>
+                <option value="entry_pharm">ทีมคลังเวชภัณฑ์และเภสัชกรรม (PHARM)</option>
+                <option value="guest">ผู้เยี่ยมชม (ดู Dashboard ได้อย่างเดียว)</option>
+            </select>
+
+            <div class="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6 text-sm text-gray-600 h-32 overflow-y-auto">
+                <strong>นโยบายความเป็นส่วนตัว (PDPA)</strong><br>
+                ข้อมูลส่วนบุคคลของท่านจะถูกเก็บรักษาและใช้เพื่อวัตถุประสงค์ในการยืนยันตัวตนสำหรับการเข้าใช้งานระบบ Crisis Management Dashboard ของโรงพยาบาลจิตเวชเลยราชนครินทร์เท่านั้น โดยจะไม่ถูกเปิดเผยต่อบุคคลภายนอกโดยไม่ได้รับอนุญาต...
+            </div>
+            
+            <label class="flex items-center mb-6 cursor-pointer">
+                <input type="checkbox" id="regPdpa" class="form-checkbox h-5 w-5 text-blue-600 rounded">
+                <span class="ml-2 text-sm text-gray-700 font-medium">ข้าพเจ้าได้อ่านและยอมรับนโยบายความเป็นส่วนตัว</span>
+            </label>
+
+            <button onclick="register()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg shadow-lg">ยืนยันการลงทะเบียน</button>
+            <p id="regMsg" class="text-red-500 text-center mt-3 text-sm h-5"></p>
+
+            <div class="mt-4 text-center">
+                <button onclick="switchView('loginView')" class="text-gray-500 hover:text-gray-700 text-sm underline">กลับไปหน้าเข้าสู่ระบบ</button>
+            </div>
+        </div>
+
+        <div id="forgotView" class="glass-panel rounded-2xl p-8 max-w-md mx-auto hidden transition-all duration-300">
+            <h2 class="text-2xl font-bold text-gray-800 mb-2 text-center">ลืมรหัสผ่าน</h2>
+            <p class="text-gray-500 text-center text-sm mb-6">ระบบจะส่งรหัสผ่านใหม่ไปยังอีเมลที่ลงทะเบียนไว้</p>
+            
+            <input type="email" id="forgotEmail" placeholder="ระบุอีเมลของคุณ" class="w-full bg-white/50 border border-gray-300 px-4 py-3 rounded-lg mb-6">
+            
+            <button onclick="requestReset()" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 rounded-lg shadow-lg">ส่งลิงก์รีเซ็ตรหัสผ่าน</button>
+            <p id="forgotMsg" class="text-center mt-3 text-sm font-medium h-5"></p>
+
+            <div class="mt-6 text-center">
+                <button onclick="switchView('loginView')" class="text-gray-500 hover:text-gray-700 text-sm underline">กลับไปหน้าเข้าสู่ระบบ</button>
+            </div>
+        </div>
+
+        <div id="mainView" class="glass-panel rounded-2xl p-6 md:p-10 hidden">
+            <div class="flex flex-col md:flex-row justify-between items-center border-b border-gray-200 pb-4 mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2 md:mb-0">Crisis Dashboard (Live)</h2>
+                <div class="flex items-center space-x-4">
+                    <span id="displayUser" class="text-sm font-semibold text-blue-800 bg-blue-100 px-3 py-1 rounded-full"></span>
+                    <button onclick="logout()" class="text-sm bg-red-100 text-red-600 hover:bg-red-200 px-4 py-2 rounded-lg transition">ออกจากระบบ</button>
+                </div>
+            </div>
+
+            <div id="formEnv" class="bg-white/80 p-6 rounded-xl border border-blue-100 shadow-sm mb-8 hidden">
+                <h3 class="text-lg font-bold text-blue-800 mb-4 flex items-center"><span class="bg-blue-600 w-2 h-6 rounded mr-2"></span>ส่วนงาน ENV (ระบบสาธารณูปโภค)</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input type="number" placeholder="น้ำมันสำรอง (ลิตร)" class="border p-2 rounded">
+                    <input type="number" placeholder="น้ำสำรอง (ลบ.ม.)" class="border p-2 rounded">
+                    <input type="text" placeholder="สถานะเครื่องปั่นไฟ" class="border p-2 rounded">
+                    <button class="bg-blue-600 text-white p-2 rounded hover:bg-blue-700">อัปเดตข้อมูล ENV</button>
+                </div>
+            </div>
+
+            <div id="formPharm" class="bg-white/80 p-6 rounded-xl border border-green-100 shadow-sm mb-8 hidden">
+                <h3 class="text-lg font-bold text-green-800 mb-4 flex items-center"><span class="bg-green-600 w-2 h-6 rounded mr-2"></span>ส่วนงานคลังเวชภัณฑ์</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <input type="text" placeholder="ชื่อยา/หมวดหมู่" class="border p-2 rounded">
+                    <input type="number" placeholder="ยอดคงคลัง (Unit)" class="border p-2 rounded">
+                    <input type="number" placeholder="คาดการณ์ (ใช้ได้กี่วัน)" class="border p-2 rounded">
+                    <button class="bg-green-600 text-white p-2 rounded hover:bg-green-700 md:col-span-3">อัปเดตข้อมูลคลังยา</button>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 rounded-xl p-8 border border-gray-200 text-center text-gray-500">
+                [พื้นที่แสดงผลกราฟและ Dashboard จะอยู่ตรงนี้]
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwCALCCWgQL3se6SHHO-FO19qCe3Jc-wlAtqkXMtcmAkwblNLYg7M6ukQSvHsKpAb6FWQ/exec'; // ใส่ URL จาก Google Apps Script
+
+        function switchView(viewId) {
+            ['loginView', 'registerView', 'forgotView', 'mainView'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(viewId).classList.remove('hidden');
+            
+            // เคลียร์ข้อความแจ้งเตือน
+            document.getElementById('logMsg').innerText = '';
+            document.getElementById('regMsg').innerText = '';
+            document.getElementById('forgotMsg').innerText = '';
+        }
+
+        async function login() {
+            const user = document.getElementById('logUser').value;
+            const pass = document.getElementById('logPass').value;
+            const msgLabel = document.getElementById('logMsg');
+            
+            if(!user || !pass) { msgLabel.innerText = "กรุณากรอกข้อมูลให้ครบ"; return; }
+            msgLabel.innerText = "กำลังตรวจสอบ...";
+            msgLabel.className = "text-blue-500 text-center mt-3 text-sm h-5";
+
+            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'login', username: user, password: pass }) });
+            const result = await res.json();
+
+            if (result.status === 'success') {
+                switchView('mainView');
+                document.getElementById('displayUser').innerText = `${result.username} (${result.role})`;
+                
+                // จัดการสิทธิ์การมองเห็นฟอร์ม
+                document.getElementById('formEnv').classList.add('hidden');
+                document.getElementById('formPharm').classList.add('hidden');
+                
+                if(result.role === 'admin') {
+                    document.getElementById('formEnv').classList.remove('hidden');
+                    document.getElementById('formPharm').classList.remove('hidden');
+                } else if(result.role === 'entry_env') {
+                    document.getElementById('formEnv').classList.remove('hidden');
+                } else if(result.role === 'entry_pharm') {
+                    document.getElementById('formPharm').classList.remove('hidden');
+                }
+            } else {
+                msgLabel.innerText = result.message;
+                msgLabel.className = "text-red-500 text-center mt-3 text-sm h-5";
+            }
+        }
+
+        async function register() {
+            const user = document.getElementById('regUser').value;
+            const email = document.getElementById('regEmail').value;
+            const pass = document.getElementById('regPass').value;
+            const passConfirm = document.getElementById('regPassConfirm').value;
+            const role = document.getElementById('regRole').value;
+            const pdpa = document.getElementById('regPdpa').checked;
+            const msgLabel = document.getElementById('regMsg');
+
+            if(!user || !email || !pass || !role) { msgLabel.innerText = "กรุณากรอกข้อมูลให้ครบถ้วน"; return; }
+            if(pass !== passConfirm) { msgLabel.innerText = "รหัสผ่านไม่ตรงกัน"; return; }
+            if(!pdpa) { msgLabel.innerText = "กรุณายอมรับนโยบาย PDPA"; return; }
+
+            msgLabel.innerText = "กำลังดำเนินการ...";
+            msgLabel.className = "text-blue-500 text-center mt-3 text-sm h-5";
+
+            const payload = { action: 'register', username: user, email: email, password: pass, role: role, pdpa: pdpa };
+            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+            const result = await res.json();
+
+            if(result.status === 'success') {
+                msgLabel.className = "text-green-600 text-center mt-3 text-sm h-5";
+                msgLabel.innerText = result.message;
+                setTimeout(() => switchView('loginView'), 2000);
+            } else {
+                msgLabel.className = "text-red-500 text-center mt-3 text-sm h-5";
+                msgLabel.innerText = result.message;
+            }
+        }
+
+        async function requestReset() {
+            const email = document.getElementById('forgotEmail').value;
+            const msgLabel = document.getElementById('forgotMsg');
+            
+            if(!email) { msgLabel.innerText = "กรุณาระบุอีเมล"; msgLabel.className = "text-red-500 text-center mt-3 text-sm h-5"; return; }
+            
+            msgLabel.innerText = "กำลังส่งข้อมูล...";
+            msgLabel.className = "text-blue-500 text-center mt-3 text-sm h-5";
+
+            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'forgotPassword', email: email }) });
+            const result = await res.json();
+
+            if(result.status === 'success') {
+                msgLabel.className = "text-green-600 text-center mt-3 text-sm h-5";
+                msgLabel.innerText = result.message;
+            } else {
+                msgLabel.className = "text-red-500 text-center mt-3 text-sm h-5";
+                msgLabel.innerText = result.message;
+            }
+        }
+
+        function logout() {
+            document.getElementById('logUser').value = '';
+            document.getElementById('logPass').value = '';
+            switchView('loginView');
+        }
+    </script>
+</body>
+</html>
