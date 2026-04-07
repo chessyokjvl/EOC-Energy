@@ -12,27 +12,89 @@
         .sidebar-transition { transition: transform 0.3s ease-in-out; }
         .nav-btn.active { background-color: #2563eb; color: white; }
         
-        /* สไตล์สำหรับหน้า Login */
-        .glass-panel { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.5); }
+        /* สไตล์สำหรับหน้า Auth (Login/Register/Forgot) */
+        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.5); }
         .bg-gradient-premium { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); }
     </style>
 </head>
-<body class="flex h-screen overflow-hidden text-gray-800" id="body-bg">
+<body class="flex h-screen overflow-hidden text-gray-800 bg-gradient-premium" id="body-bg">
 
-    <div id="loginSection" class="bg-gradient-premium fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div class="glass-panel rounded-2xl p-8 max-w-md w-full shadow-2xl">
+    <div id="authContainer" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+        
+        <div id="loginView" class="glass-panel rounded-2xl p-8 max-w-md w-full shadow-2xl transition-all duration-300">
             <div class="text-center mb-6">
                 <i class="fa-solid fa-shield-halved text-5xl text-blue-600 mb-3"></i>
                 <h1 class="text-2xl font-bold text-gray-800 tracking-wide">รพ.จิตเวชเลยราชนครินทร์</h1>
                 <p class="text-gray-500 mt-1">Crisis Command System</p>
             </div>
             
-            <input type="text" id="logUser" placeholder="ชื่อผู้ใช้ (Username)" class="w-full border border-gray-300 px-4 py-3 rounded-lg mb-4 focus:ring-2 focus:ring-blue-500">
-            <input type="password" id="logPass" placeholder="รหัสผ่าน (Password)" class="w-full border border-gray-300 px-4 py-3 rounded-lg mb-6 focus:ring-2 focus:ring-blue-500">
+            <input type="text" id="logUser" placeholder="ชื่อผู้ใช้ (Username)" class="w-full border border-gray-300 px-4 py-3 rounded-lg mb-4 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <input type="password" id="logPass" placeholder="รหัสผ่าน (Password)" class="w-full border border-gray-300 px-4 py-3 rounded-lg mb-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            
+            <div class="flex justify-end mb-6">
+                <button onclick="switchAuthView('forgotView')" class="text-sm text-blue-600 hover:text-blue-800 font-medium">ลืมรหัสผ่าน?</button>
+            </div>
             
             <button onclick="login()" id="btnLogin" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-3 rounded-lg shadow-lg transition">เข้าสู่ระบบ</button>
             <p id="logMsg" class="text-red-500 text-center mt-3 text-sm h-5"></p>
+            
+            <div class="mt-6 text-center border-t border-gray-200 pt-4">
+                <span class="text-gray-600 text-sm">ยังไม่มีบัญชีใช่หรือไม่?</span>
+                <button onclick="switchAuthView('registerView')" class="text-blue-600 font-semibold hover:underline ml-1">สมัครสมาชิก</button>
+            </div>
         </div>
+
+        <div id="registerView" class="glass-panel rounded-2xl p-8 max-w-lg w-full shadow-2xl hidden transition-all duration-300">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">ลงทะเบียนผู้ใช้งานใหม่</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <input type="text" id="regUser" placeholder="ชื่อผู้ใช้" class="w-full border px-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                <input type="email" id="regEmail" placeholder="อีเมล (สำหรับกู้คืนรหัส)" class="w-full border px-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                <input type="password" id="regPass" placeholder="ตั้งรหัสผ่าน" class="w-full border px-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                <input type="password" id="regPassConfirm" placeholder="ยืนยันรหัสผ่าน" class="w-full border px-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+
+            <select id="regRole" class="w-full border px-4 py-2 rounded-lg mb-4 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                <option value="" disabled selected>-- เลือกส่วนงานที่รับผิดชอบ --</option>
+                <option value="entry_env">ทีมระบบ ENV (พลังงานและเชื้อเพลิง)</option>
+                <option value="entry_pharm">ทีมคลังยาและเวชภัณฑ์ (PHARM)</option>
+                <option value="entry_service">ทีมบริการและ Telemedicine</option>
+                <option value="admin">ผู้บริหาร/Admin</option>
+                <option value="guest">ผู้เยี่ยมชม (ดูได้อย่างเดียว)</option>
+            </select>
+
+            <div class="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6 text-sm text-gray-600 h-32 overflow-y-auto">
+                <strong>นโยบายความเป็นส่วนตัว (PDPA)</strong><br>
+                ข้อมูลส่วนบุคคลของท่านจะถูกเก็บรักษาและใช้เพื่อวัตถุประสงค์ในการยืนยันตัวตนสำหรับการเข้าใช้งานระบบ Crisis Management Dashboard ของโรงพยาบาลจิตเวชเลยราชนครินทร์เท่านั้น โดยจะไม่ถูกเปิดเผยต่อบุคคลภายนอกโดยไม่ได้รับอนุญาต
+            </div>
+            
+            <label class="flex items-center mb-6 cursor-pointer">
+                <input type="checkbox" id="regPdpa" class="form-checkbox h-5 w-5 text-blue-600 rounded">
+                <span class="ml-2 text-sm text-gray-700 font-medium">ข้าพเจ้าได้อ่านและยอมรับนโยบายความเป็นส่วนตัว</span>
+            </label>
+
+            <button onclick="register()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg shadow-lg transition">ยืนยันการลงทะเบียน</button>
+            <p id="regMsg" class="text-red-500 text-center mt-3 text-sm h-5"></p>
+
+            <div class="mt-4 text-center">
+                <button onclick="switchAuthView('loginView')" class="text-gray-500 hover:text-gray-700 text-sm underline">กลับไปหน้าเข้าสู่ระบบ</button>
+            </div>
+        </div>
+
+        <div id="forgotView" class="glass-panel rounded-2xl p-8 max-w-md w-full shadow-2xl hidden transition-all duration-300">
+            <h2 class="text-2xl font-bold text-gray-800 mb-2 text-center">ลืมรหัสผ่าน</h2>
+            <p class="text-gray-500 text-center text-sm mb-6">ระบบจะส่งรหัสผ่านใหม่ไปยังอีเมลที่ลงทะเบียนไว้</p>
+            
+            <input type="email" id="forgotEmail" placeholder="ระบุอีเมลของคุณ" class="w-full bg-white/50 border border-gray-300 px-4 py-3 rounded-lg mb-6 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            
+            <button onclick="requestReset()" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 rounded-lg shadow-lg transition">ส่งลิงก์รีเซ็ตรหัสผ่าน</button>
+            <p id="forgotMsg" class="text-center mt-3 text-sm font-medium h-5"></p>
+
+            <div class="mt-6 text-center">
+                <button onclick="switchAuthView('loginView')" class="text-gray-500 hover:text-gray-700 text-sm underline">กลับไปหน้าเข้าสู่ระบบ</button>
+            </div>
+        </div>
+
     </div>
 
     <div id="mainSection" class="flex w-full h-full hidden">
@@ -73,7 +135,7 @@
 
             <div class="p-4 bg-slate-950 border-t border-slate-700 flex justify-between items-center">
                 <span id="displayUser" class="text-sm font-semibold text-blue-400"></span>
-                <button onclick="logout()" class="text-slate-400 hover:text-red-400"><i class="fa-solid fa-right-from-bracket"></i></button>
+                <button onclick="logout()" class="text-slate-400 hover:text-red-400 transition" title="ออกจากระบบ"><i class="fa-solid fa-right-from-bracket"></i></button>
             </div>
         </aside>
 
@@ -89,58 +151,98 @@
 
             <main class="flex-1 overflow-x-hidden overflow-y-auto bg-slate-50 p-4 lg:p-8 relative">
                 
-                <div id="loadingOverlay" class="absolute inset-0 bg-white/70 z-50 flex items-center justify-center hidden">
-                    <div class="text-blue-600 font-bold text-lg"><i class="fa-solid fa-spinner fa-spin mr-2"></i>กำลังบันทึกข้อมูล...</div>
+                <div id="loadingOverlay" class="absolute inset-0 bg-white/80 z-50 flex items-center justify-center hidden">
+                    <div class="text-blue-600 font-bold text-lg"><i class="fa-solid fa-spinner fa-spin mr-2"></i>กำลังดำเนินการ...</div>
                 </div>
 
                 <div id="view-dashboard" class="view-section">
-                    <div class="bg-white rounded-xl shadow border p-6 text-center text-gray-500">
+                    <div class="bg-gradient-to-r from-emerald-800 to-teal-700 rounded-xl p-6 mb-8 text-white shadow-lg flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-bold flex items-center"><i class="fa-solid fa-circle-arrow-right mr-2"></i> REMINDER</h3>
+                            <p class="text-emerald-100 mt-1">มุ่งเน้นการเปลี่ยน "มีแผน" ไปสู่ <strong>"ใช้แผนได้จริง วัดผลได้จริง และปรับแผนได้ทันสถานการณ์"</strong></p>
+                        </div>
+                        <i class="fa-solid fa-solar-panel text-5xl opacity-20 hidden md:block"></i>
+                    </div>
+                    <div class="bg-white rounded-xl shadow border p-10 text-center text-gray-500">
                         <i class="fa-solid fa-chart-line text-4xl mb-3 text-blue-300"></i>
                         <p>พื้นที่สำหรับเชื่อมต่อกราฟ Dashboard (ดึงข้อมูลจาก Sheet มาแสดง)</p>
                     </div>
                 </div>
 
-                <div id="view-form-env" class="view-section hidden max-w-3xl mx-auto">
+                <div id="view-form-env" class="view-section hidden max-w-4xl mx-auto">
                     <div class="bg-white rounded-xl shadow-sm border-t-4 border-yellow-500 p-6">
-                        <h3 class="text-xl font-bold mb-4">1. พลังงานและเชื้อเพลิง</h3>
-                        <select id="env_mou_status" class="w-full border p-2 mb-3 rounded"><option>อยู่ระหว่างดำเนินการ</option><option>ดำเนินการเสร็จสิ้น</option></select>
-                        <input type="text" id="env_mou_name" placeholder="ชื่อสถานีบริการ" class="w-full border p-2 mb-3 rounded">
-                        <input type="number" id="env_energy_red" placeholder="% ลดการใช้พลังงาน" class="w-full border p-2 mb-3 rounded">
-                        <textarea id="env_ev_spec" placeholder="สถานะสเปก EV" class="w-full border p-2 mb-3 rounded h-20"></textarea>
-                        <button onclick="submitData('submitEnv')" class="w-full bg-blue-600 text-white font-bold py-2 rounded">บันทึกข้อมูล</button>
+                        <h3 class="text-xl font-bold mb-6">1. การบริหารจัดการพลังงานและเชื้อเพลิง</h3>
+                        <div class="space-y-4">
+                            <label class="block font-semibold">1. จับคู่สถานีเชื้อเพลิง (MOU)</label>
+                            <input type="text" id="env_mou_name" placeholder="ชื่อสถานีบริการ / ปั๊มน้ำมัน" class="w-full border p-2 rounded">
+                            <select id="env_mou_status" class="w-full border p-2 rounded"><option>อยู่ระหว่างดำเนินการ</option><option>ดำเนินการเสร็จสิ้น</option></select>
+                            
+                            <label class="block font-semibold mt-4">2. กำหนดเป้าหมายลดการใช้พลังงาน (%)</label>
+                            <input type="number" id="env_energy_red" placeholder="ระบุ %" class="w-full border p-2 rounded">
+                            
+                            <label class="block font-semibold mt-4">3. เตรียมสเปกรถพยาบาลไฟฟ้า (EV)</label>
+                            <textarea id="env_ev_spec" placeholder="สถานะ..." class="w-full border p-2 rounded h-20"></textarea>
+                            
+                            <button onclick="submitData('submitEnv')" class="w-full bg-blue-600 text-white font-bold py-3 rounded mt-4">บันทึกข้อมูลพลังงาน</button>
+                        </div>
                     </div>
                 </div>
 
-                <div id="view-form-pharm" class="view-section hidden max-w-3xl mx-auto">
+                <div id="view-form-pharm" class="view-section hidden max-w-4xl mx-auto">
                     <div class="bg-white rounded-xl shadow-sm border-t-4 border-emerald-500 p-6">
-                        <h3 class="text-xl font-bold mb-4">2. คลังยาและเวชภัณฑ์</h3>
-                        <select id="pharm_vmi" class="w-full border p-2 mb-3 rounded"><option>ยังไม่ครบ</option><option>ครบถ้วน</option></select>
-                        <select id="pharm_alert" class="w-full border p-2 mb-3 rounded"><option>ปกติ</option><option>เฝ้าระวัง</option><option>เสี่ยงขาดแคลน</option></select>
-                        <textarea id="pharm_review" placeholder="ผลทบทวนยาสำรอง ปท." class="w-full border p-2 mb-3 rounded h-20"></textarea>
-                        <textarea id="pharm_herbal" placeholder="รายการสมุนไพรทดแทน" class="w-full border p-2 mb-3 rounded h-20"></textarea>
-                        <button onclick="submitData('submitPharm')" class="w-full bg-emerald-600 text-white font-bold py-2 rounded">บันทึกข้อมูล</button>
+                        <h3 class="text-xl font-bold mb-6">2. การบริหารคลังยาและเวชภัณฑ์</h3>
+                        <div class="space-y-4">
+                            <label class="block font-semibold text-red-600">4. ข้อมูลคลังเวชภัณฑ์ (VMI) <span class="text-xs ml-2 text-gray-500">Deadline 5 เม.ย.</span></label>
+                            <select id="pharm_vmi" class="w-full border p-2 rounded"><option>ยังไม่ครบ</option><option>ครบถ้วน</option></select>
+                            
+                            <label class="block font-semibold mt-4">5. แจ้งเตือนสถานะ 3 ระดับ</label>
+                            <select id="pharm_alert" class="w-full border p-2 rounded"><option>🟢 ปกติ</option><option>🟡 เฝ้าระวัง</option><option>🔴 เสี่ยงขาดแคลน</option></select>
+                            
+                            <label class="block font-semibold mt-4">6. ทบทวนยาสำรองระดับประเทศ</label>
+                            <textarea id="pharm_review" class="w-full border p-2 rounded h-20"></textarea>
+                            
+                            <label class="block font-semibold mt-4">7. ยาสมุนไพรทางเลือก</label>
+                            <textarea id="pharm_herbal" class="w-full border p-2 rounded h-20"></textarea>
+                            
+                            <button onclick="submitData('submitPharm')" class="w-full bg-emerald-600 text-white font-bold py-3 rounded mt-4">บันทึกข้อมูลคลังยา</button>
+                        </div>
                     </div>
                 </div>
 
-                <div id="view-form-service" class="view-section hidden max-w-3xl mx-auto">
+                <div id="view-form-service" class="view-section hidden max-w-4xl mx-auto">
                     <div class="bg-white rounded-xl shadow-sm border-t-4 border-blue-500 p-6">
-                        <h3 class="text-xl font-bold mb-4">3. บริการภาวะวิกฤต</h3>
-                        <textarea id="srv_scenario" placeholder="วิเคราะห์ผลกระทบ (Scenario Planning)" class="w-full border p-2 mb-3 rounded h-20"></textarea>
-                        <input type="date" id="srv_date" class="w-full border p-2 mb-3 rounded">
-                        <input type="number" id="srv_cases" placeholder="จำนวนเคส Telemedicine" class="w-full border p-2 mb-3 rounded">
-                        <button onclick="submitData('submitService')" class="w-full bg-blue-600 text-white font-bold py-2 rounded">บันทึกข้อมูล</button>
+                        <h3 class="text-xl font-bold mb-6">3. การบริการในภาวะวิกฤต</h3>
+                        <div class="space-y-4">
+                            <label class="block font-semibold">8. วิเคราะห์ผลกระทบ (Scenario Planning)</label>
+                            <textarea id="srv_scenario" class="w-full border p-2 rounded h-20"></textarea>
+                            
+                            <label class="block font-semibold mt-4">9. รายงาน Telemedicine รายวัน</label>
+                            <div class="grid grid-cols-2 gap-4">
+                                <input type="date" id="srv_date" class="w-full border p-2 rounded">
+                                <input type="number" id="srv_cases" placeholder="จำนวนผู้รับบริการ (ราย)" class="w-full border p-2 rounded">
+                            </div>
+                            
+                            <button onclick="submitData('submitService')" class="w-full bg-blue-600 text-white font-bold py-3 rounded mt-4">บันทึกข้อมูลบริการ</button>
+                        </div>
                     </div>
                 </div>
 
-                <div id="view-form-comm" class="view-section hidden max-w-3xl mx-auto">
+                <div id="view-form-comm" class="view-section hidden max-w-4xl mx-auto">
                     <div class="bg-white rounded-xl shadow-sm border-t-4 border-teal-600 p-6">
-                        <h3 class="text-xl font-bold mb-4">แผนสื่อสารความเสี่ยง</h3>
-                        <input type="text" id="comm_service" placeholder="บริการที่กระทบ/ไม่กระทบ" class="w-full border p-2 mb-3 rounded">
-                        <input type="text" id="comm_queue" placeholder="ลำดับการรับบริการ" class="w-full border p-2 mb-3 rounded">
-                        <input type="text" id="comm_channel" placeholder="ช่องทาง Telemed/สายด่วน" class="w-full border p-2 mb-3 rounded">
-                        <input type="text" id="comm_refill" placeholder="การรับยาต่อเนื่อง" class="w-full border p-2 mb-3 rounded">
-                        <label class="flex items-center mb-4"><input type="checkbox" id="comm_confirm" class="mr-2">ยืนยันการสื่อสารแล้ว</label>
-                        <button onclick="submitData('submitComm')" class="w-full bg-teal-700 text-white font-bold py-2 rounded">บันทึกแผนสื่อสาร</button>
+                        <h3 class="text-xl font-bold mb-6">แผนสื่อสารความเสี่ยง (ระยะต่อไป)</h3>
+                        <div class="space-y-4">
+                            <input type="text" id="comm_service" placeholder="บริการที่กระทบ/ไม่กระทบ" class="w-full border p-2 rounded">
+                            <input type="text" id="comm_queue" placeholder="ลำดับการรับบริการ" class="w-full border p-2 rounded">
+                            <input type="text" id="comm_channel" placeholder="ช่องทาง Telemed/สายด่วน" class="w-full border p-2 rounded">
+                            <input type="text" id="comm_refill" placeholder="การขอรับยาต่อเนื่อง" class="w-full border p-2 rounded">
+                            
+                            <label class="flex items-center mt-4">
+                                <input type="checkbox" id="comm_confirm" class="w-5 h-5 mr-2"> 
+                                <span class="font-semibold text-teal-800">ยืนยันว่าได้สื่อสารกับประชาชนแล้ว</span>
+                            </label>
+                            
+                            <button onclick="submitData('submitComm')" class="w-full bg-teal-700 text-white font-bold py-3 rounded mt-4">บันทึกแผนสื่อสาร</button>
+                        </div>
                     </div>
                 </div>
 
@@ -149,20 +251,39 @@
     </div>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbwCALCCWgQL3se6SHHO-FO19qCe3Jc-wlAtqkXMtcmAkwblNLYg7M6ukQSvHsKpAb6FWQ/exec'; // ใส่ URL ของ GAS ที่นี่
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwCALCCWgQL3se6SHHO-FO19qCe3Jc-wlAtqkXMtcmAkwblNLYg7M6ukQSvHsKpAb6FWQ/exec'; // ** ใส่ URL Google Apps Script ที่นี่ **
         let currentUser = '';
 
-        // Login Logic
+        // --- ระบบกด Enter เพื่อ Login ---
+        document.getElementById("logPass").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                login();
+            }
+        });
+
+        // สลับหน้าจอ Auth
+        function switchAuthView(viewId) {
+            ['loginView', 'registerView', 'forgotView'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(viewId).classList.remove('hidden');
+            
+            // ล้างข้อความ Error
+            document.getElementById('logMsg').innerText = '';
+            document.getElementById('regMsg').innerText = '';
+            document.getElementById('forgotMsg').innerText = '';
+        }
+
+        // --- AUTH API ---
         async function login() {
             const user = document.getElementById('logUser').value;
             const pass = document.getElementById('logPass').value;
-            const btn = document.getElementById('btnLogin');
-            const msg = document.getElementById('logMsg');
+            const msgLabel = document.getElementById('logMsg');
             
-            if(!user || !pass) { msg.innerText = "กรุณากรอกข้อมูลให้ครบ"; return; }
-            
-            btn.innerText = "กำลังตรวจสอบ...";
-            btn.disabled = true;
+            if(!user || !pass) { msgLabel.innerText = "กรุณากรอกข้อมูลให้ครบถ้วน"; return; }
+            msgLabel.innerText = "กำลังตรวจสอบ...";
+            msgLabel.className = "text-blue-500 text-center mt-3 text-sm h-5";
 
             try {
                 const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'login', username: user, password: pass }) });
@@ -170,18 +291,71 @@
 
                 if (result.status === 'success') {
                     currentUser = result.username;
-                    document.getElementById('loginSection').classList.add('hidden');
+                    document.getElementById('authContainer').classList.add('hidden');
                     document.getElementById('mainSection').classList.remove('hidden');
-                    document.getElementById('displayUser').innerText = result.username;
+                    document.getElementById('displayUser').innerText = `${result.username} (${result.role})`;
                     document.getElementById('body-bg').classList.remove('bg-gradient-premium');
                 } else {
-                    msg.innerText = result.message;
+                    msgLabel.innerText = result.message;
+                    msgLabel.className = "text-red-500 text-center mt-3 text-sm h-5";
                 }
             } catch(e) {
-                msg.innerText = "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้";
+                msgLabel.innerText = "เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์";
             }
-            btn.innerText = "เข้าสู่ระบบ";
-            btn.disabled = false;
+        }
+
+        async function register() {
+            const user = document.getElementById('regUser').value;
+            const email = document.getElementById('regEmail').value;
+            const pass = document.getElementById('regPass').value;
+            const passConfirm = document.getElementById('regPassConfirm').value;
+            const role = document.getElementById('regRole').value;
+            const pdpa = document.getElementById('regPdpa').checked;
+            const msgLabel = document.getElementById('regMsg');
+
+            if(!user || !email || !pass || !role) { msgLabel.innerText = "กรุณากรอกข้อมูลให้ครบถ้วน"; return; }
+            if(pass !== passConfirm) { msgLabel.innerText = "รหัสผ่านไม่ตรงกัน"; return; }
+            if(!pdpa) { msgLabel.innerText = "กรุณายอมรับนโยบาย PDPA"; return; }
+
+            msgLabel.innerText = "กำลังส่งข้อมูล...";
+            msgLabel.className = "text-blue-500 text-center mt-3 text-sm h-5";
+
+            const payload = { action: 'register', username: user, email: email, password: pass, role: role, pdpa: pdpa };
+            try {
+                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const result = await res.json();
+                
+                if(result.status === 'success') {
+                    msgLabel.className = "text-green-600 text-center mt-3 text-sm h-5";
+                    msgLabel.innerText = result.message;
+                    setTimeout(() => switchAuthView('loginView'), 2000);
+                } else {
+                    msgLabel.className = "text-red-500 text-center mt-3 text-sm h-5";
+                    msgLabel.innerText = result.message;
+                }
+            } catch(e) { msgLabel.innerText = "เชื่อมต่อล้มเหลว"; }
+        }
+
+        async function requestReset() {
+            const email = document.getElementById('forgotEmail').value;
+            const msgLabel = document.getElementById('forgotMsg');
+            
+            if(!email) { msgLabel.innerText = "กรุณาระบุอีเมล"; return; }
+            msgLabel.innerText = "กำลังดำเนินการ...";
+            msgLabel.className = "text-blue-500 text-center mt-3 text-sm h-5";
+
+            try {
+                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'forgotPassword', email: email }) });
+                const result = await res.json();
+
+                if(result.status === 'success') {
+                    msgLabel.className = "text-green-600 text-center mt-3 text-sm h-5";
+                    msgLabel.innerText = result.message;
+                } else {
+                    msgLabel.className = "text-red-500 text-center mt-3 text-sm h-5";
+                    msgLabel.innerText = result.message;
+                }
+            } catch(e) { msgLabel.innerText = "เชื่อมต่อล้มเหลว"; }
         }
 
         function logout() {
@@ -189,11 +363,12 @@
             document.getElementById('logUser').value = '';
             document.getElementById('logPass').value = '';
             document.getElementById('mainSection').classList.add('hidden');
-            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('authContainer').classList.remove('hidden');
             document.getElementById('body-bg').classList.add('bg-gradient-premium');
+            switchAuthView('loginView');
         }
 
-        // Sidebar & Tabs Logic
+        // --- APP UI Logic ---
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('-translate-x-full');
             document.getElementById('sidebarOverlay').classList.toggle('hidden');
@@ -204,10 +379,19 @@
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById('view-' + tabId).classList.remove('hidden');
             document.getElementById('btn-' + tabId).classList.add('active');
+            
+            const titles = {
+                'dashboard': 'ภาพรวม 9 ข้อสั่งการ (Dashboard)',
+                'form-env': '1. พลังงานและเชื้อเพลิง',
+                'form-pharm': '2. คลังยาและเวชภัณฑ์',
+                'form-service': '3. การบริการภาวะวิกฤต',
+                'form-comm': 'แผนสื่อสารความเสี่ยง'
+            };
+            document.getElementById('pageTitle').innerText = titles[tabId];
+            
             if (window.innerWidth < 768) toggleSidebar();
         }
 
-        // Submit Logic
         async function submitData(actionType) {
             document.getElementById('loadingOverlay').classList.remove('hidden');
             let payload = { action: actionType, username: currentUser };
@@ -216,39 +400,4 @@
                 payload.mou_status = document.getElementById('env_mou_status').value;
                 payload.mou_name = document.getElementById('env_mou_name').value;
                 payload.energy_reduction = document.getElementById('env_energy_red').value;
-                payload.ev_spec = document.getElementById('env_ev_spec').value;
-            } else if(actionType === 'submitPharm') {
-                payload.vmi_status = document.getElementById('pharm_vmi').value;
-                payload.alert_level = document.getElementById('pharm_alert').value;
-                payload.review_reserve = document.getElementById('pharm_review').value;
-                payload.herbal_alt = document.getElementById('pharm_herbal').value;
-            } else if(actionType === 'submitService') {
-                payload.scenario_impact = document.getElementById('srv_scenario').value;
-                payload.telemed_date = document.getElementById('srv_date').value;
-                payload.telemed_cases = document.getElementById('srv_cases').value;
-            } else if(actionType === 'submitComm') {
-                payload.service_impact = document.getElementById('comm_service').value;
-                payload.queue_priority = document.getElementById('comm_queue').value;
-                payload.telemed_channel = document.getElementById('comm_channel').value;
-                payload.med_refill = document.getElementById('comm_refill').value;
-                payload.confirmed = document.getElementById('comm_confirm').checked;
-            }
-
-            try {
-                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-                const result = await res.json();
-                alert(result.message || 'บันทึกข้อมูลเรียบร้อย');
-                // เคลียร์ฟอร์มหลังบันทึก (สามารถใส่โค้ดเคลียร์ค่า input ตรงนี้ได้)
-            } catch(e) {
-                alert('เกิดข้อผิดพลาดในการส่งข้อมูล');
-            }
-            document.getElementById('loadingOverlay').classList.add('hidden');
-        }
-
-        window.onload = () => {
-            const today = new Date().toISOString().split('T')[0];
-            if(document.getElementById('srv_date')) document.getElementById('srv_date').value = today;
-        };
-    </script>
-</body>
-</html>
+                payload.ev_spec = document.getElementById
