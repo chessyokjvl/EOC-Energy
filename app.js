@@ -23,37 +23,28 @@ async function login(isGuest) {
     const pass = document.getElementById('logPass').value;
     const btn = document.getElementById('btnLogin');
     
-    if (!isGuest && (!user || !pass)) return alert("กรุณากรอกข้อมูล");
+    if (!isGuest && (!user || !pass)) return alert("กรุณากรอกข้อมูลให้ครบถ้วน");
     
     btn.innerText = "กำลังตรวจสอบ...";
-    
     try {
         const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'login', username: user, password: pass, isGuest: isGuest }) });
         const result = await res.json();
 
         if (result.status === 'success') {
             currentUser = { username: result.username, role: result.role };
-            
-            // Set UI
             document.getElementById('authContainer').classList.add('hidden');
             document.getElementById('mainSection').classList.remove('hidden');
             document.getElementById('body-bg').classList.remove('bg-gradient-premium');
             document.getElementById('displayUser').innerText = currentUser.username;
             document.getElementById('displayRole').innerText = `Role: ${currentUser.role}`;
             
-            // Handle Role Access
-            if (currentUser.role === 'admin') {
-                document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
-            } else {
-                document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
-            }
-
-            // Load Data
+            document.querySelectorAll('.admin-only').forEach(el => currentUser.role === 'admin' ? el.classList.remove('hidden') : el.classList.add('hidden'));
+            
             await fetchAppData();
         } else {
             document.getElementById('logMsg').innerText = result.message;
         }
-    } catch(e) { document.getElementById('logMsg').innerText = "เชื่อมต่อล้มเหลว"; }
+    } catch(e) { document.getElementById('logMsg').innerText = "เชื่อมต่อ API ล้มเหลว"; }
     btn.innerText = "เข้าสู่ระบบ";
 }
 
@@ -66,8 +57,7 @@ async function register() {
         role: document.getElementById('regRole').value,
         pdpa: document.getElementById('regPdpa').checked
     };
-    if(payload.password !== document.getElementById('regPassConfirm').value) return alert("รหัสไม่ตรงกัน");
-    
+    if(payload.password !== document.getElementById('regPassConfirm').value) return alert("รหัสผ่านไม่ตรงกัน");
     document.getElementById('regMsg').innerText = "กำลังส่งข้อมูล...";
     const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
     const result = await res.json();
@@ -89,7 +79,7 @@ function switchTab(tabId) {
 }
 
 // ==========================================
-// 2. Data Loading & Dashboard Logic
+// 2. Data Logic & Dashboard
 // ==========================================
 async function fetchAppData() {
     document.getElementById('loadingOverlay').classList.remove('hidden');
@@ -99,170 +89,223 @@ async function fetchAppData() {
         if(result.status === 'success') {
             appData.master = result.master;
             appData.logs = result.logs;
-            
             renderDashboard();
             renderInputTable();
             if(currentUser.role === 'admin') renderMasterTable();
         }
-    } catch(e) { alert("เกิดข้อผิดพลาดในการดึงข้อมูล"); }
+    } catch(e) { alert("เกิดข้อผิดพลาดในการโหลดข้อมูล"); }
     document.getElementById('loadingOverlay').classList.add('hidden');
 }
 
 function renderDashboard() {
-    // 1. Update 4-Grid Status (คำนวณจาก Log ล่าสุด)
-    updateGridColor('grid-1', 'g1-txt', 'ENV');
-    updateGridColor('grid-2', 'g2-txt', 'PHARM');
-    
-    // 2. Render Chart
+    // อัปเดต 4-Grid โดยประเมินจากข้อมูล Log ล่าสุดของแต่ละหมวด
+    ['ENV', 'PHARM', 'FIN', 'SERV'].forEach(type => {
+        updateGridStatus(type);
+    });
     renderChart();
 }
 
-function updateGridColor(gridId, txtId, type) {
-    const el = document.getElementById(gridId);
-    const txt = document.getElementById(txtId);
-    
-    // หาข้อมูลล่าสุดของ Type นี้
-    const recentLogs = appData.logs.filter(l => l.type === type).sort((a,b) => new Date(b.date) - new Date(a.date));
-    if(recentLogs.length === 0) return;
-    
-    const masterInfo = appData.master.find(m => m.code === recentLogs[0].code);
-    if(!masterInfo) return;
-    
-    const daysLeft = Math.floor(recentLogs[0].value / masterInfo.avgUse);
-    const target = masterInfo.target;
+function updateGridStatus(type) {
+    const gridEl = document.getElementById(`grid-${type}`);
+    const txtEl = document.getElementById(`g-txt-${type}`);
+    if(!gridEl) return;
 
-    el.className = "p-4 rounded-xl text-center text-white transition-all shadow-md";
-    if (daysLeft >= target) { el.classList.add('bg-gradient-to-br', 'from-emerald-400', 'to-emerald-600'); txt.innerText = "ปกติ"; }
-    else if (daysLeft >= target * 0.5) { el.classList.add('bg-gradient-to-br', 'from-yellow-400', 'to-yellow-600'); txt.innerText = "เฝ้าระวัง"; }
-    else { el.classList.add('bg-gradient-to-br', 'from-red-500', 'to-red-700', 'animate-pulse'); txt.innerText = "วิกฤต"; }
+    // หา Log ล่าสุดของ Type นี้
+    const recentLogs = appData.logs.filter(l => l.type === type).sort((a,b) => new Date(b.date) - new Date(a.date));
+    
+    gridEl.className = "p-5 rounded-xl text-center text-white transition-all shadow-md flex flex-col items-center justify-center";
+    
+    if(recentLogs.length === 0) {
+        gridEl.className = "p-5 rounded-xl text-center bg-slate-100 text-slate-500 border";
+        txtEl.innerText = "ยังไม่มีข้อมูล";
+        return;
+    }
+
+    const master = appData.master.find(m => m.code === recentLogs[0].code);
+    if(!master) return;
+
+    // คำนวณความสำเร็จเทียบเป้าหมาย (Days left หรือ %)
+    const currentPerformance = recentLogs[0].value / master.avgUse;
+    const target = master.target;
+    
+    // เกณฑ์สี: >= Target (เขียว), >= Target*0.6 (เหลือง), < Target*0.6 (แดง)
+    if (currentPerformance >= target) {
+        gridEl.classList.add('bg-gradient-to-br', 'from-emerald-400', 'to-emerald-600');
+        txtEl.innerText = "ระดับสีเขียว (ปกติ)";
+    } else if (currentPerformance >= target * 0.6) {
+        gridEl.classList.add('bg-gradient-to-br', 'from-yellow-400', 'to-yellow-500', 'text-slate-800');
+        txtEl.innerText = "ระดับสีเหลือง (เฝ้าระวัง)";
+        txtEl.className = "text-xs mt-1 bg-white/40 text-slate-800 font-bold px-2 py-1 rounded-full";
+    } else {
+        gridEl.classList.add('bg-gradient-to-br', 'from-red-600', 'to-red-800', 'animate-pulse');
+        txtEl.innerText = "ระดับสีแดง (วิกฤต)";
+    }
 }
 
 function renderChart() {
     const ctx = document.getElementById('mainChart').getContext('2d');
-    if (runChart) runChart.destroy(); // ลบกราฟเก่าทิ้งก่อนวาดใหม่
+    if (runChart) runChart.destroy();
 
     const filterType = document.getElementById('filterType').value;
     const daysLimit = parseInt(document.getElementById('filterTime').value);
     
-    // กรองข้อมูลตามเวลาและประเภท
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - daysLimit);
     
     let filteredLogs = appData.logs.filter(l => new Date(l.date) >= cutoffDate);
     if (filterType !== 'ALL') filteredLogs = filteredLogs.filter(l => l.type === filterType);
-    
-    // เรียงตามเวลา
     filteredLogs.sort((a,b) => new Date(a.date) - new Date(b.date));
 
-    const labels = filteredLogs.map(l => new Date(l.date).toLocaleDateString('th-TH'));
-    const dataPoints = filteredLogs.map(l => {
-        const m = appData.master.find(x => x.code === l.code);
-        return m ? Math.floor(l.value / m.avgUse) : 0; // แปลง Raw value เป็น Days of Stock
+    // รวบรวมข้อมูลลง Dataset (แปลง Value เป็น Achievement ratio เทียบกับ Target)
+    const labels = [...new Set(filteredLogs.map(l => new Date(l.date).toLocaleDateString('th-TH')))];
+    
+    // ดึงประเภททั้งหมดที่มีในข้อมูลที่กรองมา เพื่อสร้างเป็นหลายๆ เส้นกราฟ
+    const typesPresent = [...new Set(filteredLogs.map(l => l.type))];
+    const datasets = typesPresent.map(type => {
+        const typeLogs = filteredLogs.filter(l => l.type === type);
+        
+        // กำหนดสีตาม Type
+        const color = type === 'ENV' ? '#eab308' : type === 'PHARM' ? '#10b981' : type === 'FIN' ? '#f59e0b' : '#3b82f6';
+        
+        return {
+            label: `ทรัพยากร ${type}`,
+            data: labels.map(dateLabel => {
+                const log = typeLogs.find(l => new Date(l.date).toLocaleDateString('th-TH') === dateLabel);
+                if(!log) return null;
+                const m = appData.master.find(x => x.code === log.code);
+                return m ? (log.value / m.avgUse) : null;
+            }),
+            borderColor: color,
+            backgroundColor: color + '33',
+            borderWidth: 2,
+            tension: 0.3,
+            spanGaps: true
+        };
     });
 
     runChart = new Chart(ctx, {
         type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'ปริมาณสำรองที่ใช้ได้ (วัน)',
-                data: dataPoints,
-                borderColor: '#2563eb',
-                backgroundColor: 'rgba(37, 99, 235, 0.1)',
-                borderWidth: 2,
-                fill: true,
-                tension: 0.3
-            }]
-        },
+        data: { labels: labels, datasets: datasets },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { title: { display: true, text: `Run Chart: ทรัพยากร ${filterType} (${daysLimit} วันย้อนหลัง)` } },
-            scales: { y: { beginAtZero: true, title: { display: true, text: 'Days of Stock' } } }
+            responsive: true, maintainAspectRatio: false,
+            plugins: { title: { display: true, text: `Run Chart (${daysLimit} วันย้อนหลัง)` } },
+            scales: { y: { title: { display: true, text: 'ผลลัพธ์ (วัน/เปอร์เซ็นต์)' } } }
         }
     });
 }
 
 // ==========================================
-// 3. Raw Data Input
+// 3. Raw Data Input & Smart Grid
 // ==========================================
 function renderInputTable() {
     const tbody = document.getElementById('input-tbody');
     tbody.innerHTML = '';
     
-    // กรองให้เห็นเฉพาะของแผนกตัวเอง (ตัวอย่าง: ถ้าไม่ใช่ Admin ก็เห็นเฉพาะ ENV หรือ PHARM ตาม Role)
+    // กรอง Master Data ตามสิทธิ์
     let myMaster = appData.master;
-    if(currentUser.role === 'entry_env') myMaster = myMaster.filter(m => m.type === 'ENV');
-    if(currentUser.role === 'entry_pharm') myMaster = myMaster.filter(m => m.type === 'PHARM');
+    if(currentUser.role.startsWith('entry_')) {
+        const roleType = currentUser.role.split('_')[1].toUpperCase();
+        myMaster = myMaster.filter(m => m.type === roleType);
+    }
 
     myMaster.forEach(m => {
+        const typeColor = m.type === 'ENV' ? 'bg-yellow-100 text-yellow-700' : m.type === 'PHARM' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-700';
+        
         tbody.innerHTML += `
-            <tr class="border-b">
-                <td class="p-3"><span class="bg-slate-200 px-2 py-1 rounded text-xs">${m.type}</span></td>
-                <td class="p-3">${m.name} <br><span class="text-xs text-slate-400">${m.code}</span></td>
-                <td class="p-3 bg-blue-50/50"><input type="number" id="input_${m.type}_${m.code}" class="w-full border p-2 rounded text-right font-bold text-blue-700"></td>
+            <tr class="border-b hover:bg-slate-50">
+                <td class="p-3"><span class="${typeColor} px-2 py-1 rounded text-xs font-bold">${m.type}</span></td>
+                <td class="p-3">${m.name} <br><span class="text-xs text-slate-400">Code: ${m.code}</span></td>
+                <td class="p-3 bg-blue-50/30">
+                    <input type="number" id="input_${m.code}" oninput="calcSmartGrid('${m.code}')" placeholder="กรอกตัวเลข" class="w-full border border-blue-200 p-2 rounded text-right font-bold text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                </td>
+                <td class="p-3 text-center text-slate-500 hidden md:table-cell text-xs">
+                    Target: <b>${m.target}</b><br>AvgUse: ${m.avgUse}
+                </td>
+                <td class="p-3 text-center font-bold text-lg" id="res_${m.code}">-</td>
+                <td class="p-3 text-center" id="status_${m.code}">-</td>
             </tr>
         `;
     });
 }
+
+// ระบบคำนวณ Real-time ในหน้ากรอกข้อมูล
+window.calcSmartGrid = function(code) {
+    const m = appData.master.find(x => x.code === code);
+    const val = parseFloat(document.getElementById(`input_${code}`).value);
+    const resEl = document.getElementById(`res_${code}`);
+    const statusEl = document.getElementById(`status_${code}`);
+
+    if(isNaN(val) || !m) { resEl.innerText = "-"; statusEl.innerHTML = "-"; return; }
+
+    const performance = val / m.avgUse;
+    // ปรับ Format การแสดงผลตามประเภท (เช่น SERV โชว์เป็น %, อื่นๆ โชว์เป็นวัน)
+    resEl.innerText = (m.type === 'SERV') ? `${performance.toFixed(1)} %` : `${Math.floor(performance)} วัน`;
+
+    if (performance >= m.target) {
+        resEl.className = "p-3 text-center font-bold text-lg text-emerald-600";
+        statusEl.innerHTML = `<span class="bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full text-xs font-bold">ปลอดภัย</span>`;
+    } else if (performance >= m.target * 0.6) {
+        resEl.className = "p-3 text-center font-bold text-lg text-yellow-600";
+        statusEl.innerHTML = `<span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs font-bold">เฝ้าระวัง</span>`;
+    } else {
+        resEl.className = "p-3 text-center font-bold text-lg text-red-600";
+        statusEl.innerHTML = `<span class="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-bold animate-pulse">วิกฤต</span>`;
+    }
+};
 
 async function submitRawData() {
     document.getElementById('loadingOverlay').classList.remove('hidden');
     const dept = document.getElementById('inputDept').value;
-    
-    // วนลูปส่งข้อมูลที่มีการกรอก
-    for (const m of appData.master) {
-        const inputEl = document.getElementById(`input_${m.type}_${m.code}`);
+    const payloads = [];
+
+    appData.master.forEach(m => {
+        const inputEl = document.getElementById(`input_${m.code}`);
         if (inputEl && inputEl.value !== "") {
-            const payload = {
-                action: 'submitLog',
-                username: currentUser.username,
-                department: dept,
-                type: m.type,
-                code: m.code,
-                value: parseFloat(inputEl.value)
-            };
-            await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-            inputEl.value = ""; // เคลียร์ช่อง
+            payloads.push({ type: m.type, code: m.code, value: parseFloat(inputEl.value) });
         }
+    });
+
+    if(payloads.length === 0) {
+        document.getElementById('loadingOverlay').classList.add('hidden');
+        return alert("กรุณากรอกข้อมูลอย่างน้อย 1 รายการ");
     }
-    
-    alert("บันทึกข้อมูลเรียบร้อย");
-    await fetchAppData(); // โหลดข้อมูลใหม่เพื่อให้กราฟและกริดเปลี่ยน
+
+    try {
+        await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'submitLog', username: currentUser.username, department: dept, payloads: payloads }) });
+        alert("บันทึกข้อมูลเรียบร้อย");
+        
+        // เคลียร์ค่าที่กรอกแล้ว
+        payloads.forEach(p => {
+            document.getElementById(`input_${p.code}`).value = '';
+            calcSmartGrid(p.code);
+        });
+        await fetchAppData(); 
+    } catch(e) { alert("เชื่อมต่อล้มเหลว"); }
+    document.getElementById('loadingOverlay').classList.add('hidden');
 }
 
 // ==========================================
-// 4. Master Data (Admin)
+// 4. Master Data (Admin Only)
 // ==========================================
 function renderMasterTable() {
     const tbody = document.getElementById('master-tbody');
     tbody.innerHTML = '';
-    appData.master.forEach((m, idx) => {
-        tbody.innerHTML += `
-            <tr class="border-b" id="mRow_${idx}">
-                <td class="p-2"><input type="text" class="border p-1 w-full mType" value="${m.type}"></td>
-                <td class="p-2"><input type="text" class="border p-1 w-full mCode" value="${m.code}"></td>
-                <td class="p-2"><input type="text" class="border p-1 w-full mName" value="${m.name}"></td>
-                <td class="p-2"><input type="number" class="border p-1 w-full mAvg" value="${m.avgUse}"></td>
-                <td class="p-2"><input type="number" class="border p-1 w-full mTarget" value="${m.target}"></td>
-                <td class="p-2 text-center"><button onclick="document.getElementById('mRow_${idx}').remove()" class="text-red-500"><i class="fa-solid fa-trash"></i></button></td>
-            </tr>
-        `;
-    });
+    appData.master.forEach((m, idx) => addMasterRow(idx, m));
 }
 
-function addMasterRow() {
-    const idx = new Date().getTime();
-    document.getElementById('master-tbody').innerHTML += `
-        <tr class="border-b" id="mRow_${idx}">
-            <td class="p-2"><input type="text" class="border p-1 w-full mType" placeholder="เช่น ENV"></td>
-            <td class="p-2"><input type="text" class="border p-1 w-full mCode" placeholder="Code"></td>
-            <td class="p-2"><input type="text" class="border p-1 w-full mName" placeholder="Name"></td>
-            <td class="p-2"><input type="number" class="border p-1 w-full mAvg" placeholder="Avg"></td>
-            <td class="p-2"><input type="number" class="border p-1 w-full mTarget" placeholder="Target"></td>
-            <td class="p-2 text-center"><button onclick="document.getElementById('mRow_${idx}').remove()" class="text-red-500"><i class="fa-solid fa-trash"></i></button></td>
-        </tr>
+function addMasterRow(id = new Date().getTime(), m = {type:'', code:'', name:'', avgUse:'', target:''}) {
+    const tr = document.createElement('tr');
+    tr.className = "border-b";
+    tr.id = `mRow_${id}`;
+    tr.innerHTML = `
+        <td class="p-2"><input type="text" class="border p-1 w-full mType" value="${m.type}" placeholder="ENV/PHARM..."></td>
+        <td class="p-2"><input type="text" class="border p-1 w-full mCode" value="${m.code}"></td>
+        <td class="p-2"><input type="text" class="border p-1 w-full mName" value="${m.name}"></td>
+        <td class="p-2"><input type="number" class="border p-1 w-full mAvg" value="${m.avgUse}"></td>
+        <td class="p-2"><input type="number" class="border p-1 w-full mTarget" value="${m.target}"></td>
+        <td class="p-2 text-center"><button onclick="document.getElementById('mRow_${id}').remove()" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button></td>
     `;
+    document.getElementById('master-tbody').appendChild(tr);
 }
 
 async function saveMasterData() {
@@ -270,29 +313,44 @@ async function saveMasterData() {
     const newMaster = [];
     document.querySelectorAll('#master-tbody tr').forEach(tr => {
         newMaster.push({
-            type: tr.querySelector('.mType').value,
+            type: tr.querySelector('.mType').value.toUpperCase(),
             code: tr.querySelector('.mCode').value,
             name: tr.querySelector('.mName').value,
-            avgUse: parseFloat(tr.querySelector('.mAvg').value) || 0,
+            avgUse: parseFloat(tr.querySelector('.mAvg').value) || 1,
             target: parseFloat(tr.querySelector('.mTarget').value) || 0
         });
     });
 
-    const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'updateMaster', masterData: newMaster }) });
-    const result = await res.json();
-    alert(result.message);
-    await fetchAppData();
+    try {
+        const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'updateMaster', masterData: newMaster }) });
+        const result = await res.json();
+        alert(result.message);
+        await fetchAppData();
+    } catch(e) { alert("เชื่อมต่อล้มเหลว"); }
+    document.getElementById('loadingOverlay').classList.add('hidden');
 }
 
 // ==========================================
 // 5. Export Data
 // ==========================================
 function exportExcel() {
-    // สร้าง Workbook จาก Log Data ล่าสุด
-    if(!appData.logs || appData.logs.length === 0) return alert("ไม่มีข้อมูลสำหรับ Export");
-    const ws = XLSX.utils.json_to_sheet(appData.logs);
+    if(appData.logs.length === 0) return alert("ไม่มีข้อมูลประวัติให้ Export");
+    // จัดรูปแบบข้อมูลก่อน Export
+    const exportData = appData.logs.map(l => {
+        const m = appData.master.find(x => x.code === l.code);
+        return {
+            "วันที่": new Date(l.date).toLocaleString('th-TH'),
+            "ผู้บันทึก": l.user,
+            "หมวดหมู่": l.type,
+            "รหัส": l.code,
+            "ชื่อรายการ": m ? m.name : '',
+            "ยอดคงเหลือ (Raw)": l.value,
+            "การประเมิน (วัน/%)": m ? (l.value / m.avgUse).toFixed(2) : ''
+        };
+    });
+    
+    const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "RawData_Log");
-    XLSX.writeFile(wb, "Crisis_Command_Export.xlsx");
+    XLSX.writeFile(wb, "MOPH_Crisis_Export.xlsx");
 }
-// (สำหรับการ Export PDF ใช้การเรียก window.print() ซึ่งถูกตั้งค่า CSS @media print ซ่อนเมนูไว้ให้แล้วในไฟล์ html ครับ)
