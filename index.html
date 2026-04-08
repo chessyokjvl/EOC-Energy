@@ -4,12 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MOPH Crisis Command | รพ.จิตเวชเลยราชนครินทร์</title>
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Prompt', sans-serif; background-color: #f1f5f9; }
@@ -17,7 +15,7 @@
         .bg-gradient-premium { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); }
         .nav-btn.active { background-color: #1e40af; border-left: 4px solid #60a5fa; color: white; }
         .nav-btn { border-left: 4px solid transparent; }
-        /* ซ่อนเมนูตอนพิมพ์ (Print PDF) */
+        input[type="number"] { font-variant-numeric: tabular-nums; }
         @media print { #sidebar, header button, .no-print { display: none !important; } #main-content { margin: 0; width: 100%; } }
     </style>
 </head>
@@ -30,43 +28,23 @@
                 <h1 class="text-2xl font-bold">รพ.จิตเวชเลยราชนครินทร์</h1>
                 <p class="text-gray-500">Crisis Command System</p>
             </div>
-            <input type="text" id="logUser" placeholder="Username" class="w-full border p-3 rounded-lg mb-4 focus:ring-2 focus:ring-blue-500 outline-none">
-            <input type="password" id="logPass" placeholder="Password" class="w-full border p-3 rounded-lg mb-2 focus:ring-2 focus:ring-blue-500 outline-none">
-            <div class="flex justify-end mb-4">
-                <button onclick="switchAuthView('forgotView')" class="text-sm text-blue-600 hover:text-blue-800">ลืมรหัสผ่าน?</button>
-            </div>
+            <input type="text" id="logUser" placeholder="Username" class="w-full border p-3 rounded-lg mb-4 focus:outline-none">
+            <input type="password" id="logPass" placeholder="Password" class="w-full border p-3 rounded-lg mb-2 focus:outline-none">
+            <div class="flex justify-end mb-4"><button onclick="switchAuthView('forgotView')" class="text-sm text-blue-600">ลืมรหัสผ่าน?</button></div>
             <button onclick="login(false)" id="btnLogin" class="w-full bg-blue-700 text-white font-semibold py-3 rounded-lg shadow-lg mb-3">เข้าสู่ระบบ</button>
             <button onclick="login(true)" class="w-full bg-slate-200 text-slate-700 font-semibold py-3 rounded-lg shadow hover:bg-slate-300">เข้าสู่ระบบแบบ Guest</button>
             <p id="logMsg" class="text-red-500 text-center mt-3 text-sm h-5"></p>
-            <div class="mt-6 text-center border-t pt-4">
-                <span class="text-gray-600 text-sm">ยังไม่มีบัญชี?</span>
-                <button onclick="switchAuthView('registerView')" class="text-blue-600 font-semibold hover:underline ml-1">สมัครสมาชิก</button>
-            </div>
+            <div class="mt-6 text-center border-t pt-4"><span class="text-gray-600 text-sm">ยังไม่มีบัญชี?</span><button onclick="switchAuthView('registerView')" class="text-blue-600 font-semibold hover:underline ml-1">สมัครสมาชิก</button></div>
         </div>
-
         <div id="registerView" class="glass-panel rounded-2xl p-8 max-w-lg w-full shadow-2xl hidden">
             <h2 class="text-2xl font-bold text-center mb-6">ลงทะเบียน</h2>
-            <div class="grid grid-cols-2 gap-4 mb-4">
-                <input type="text" id="regUser" placeholder="Username" class="border px-4 py-2 rounded-lg outline-none">
-                <input type="email" id="regEmail" placeholder="Email" class="border px-4 py-2 rounded-lg outline-none">
-                <input type="password" id="regPass" placeholder="Password" class="border px-4 py-2 rounded-lg outline-none">
-                <input type="password" id="regPassConfirm" placeholder="Confirm Password" class="border px-4 py-2 rounded-lg outline-none">
-            </div>
-            <select id="regRole" class="w-full border px-4 py-2 rounded-lg mb-4 outline-none">
-                <option value="" disabled selected>-- เลือกส่วนงาน --</option>
-                <option value="entry_env">ทีม ENV (พลังงาน)</option>
-                <option value="entry_pharm">ทีม PHARM (คลังยา)</option>
-                <option value="admin">ผู้บริหาร/Admin</option>
-            </select>
-            <label class="flex items-center mb-6 cursor-pointer">
-                <input type="checkbox" id="regPdpa" class="w-5 h-5 text-blue-600 rounded">
-                <span class="ml-2 text-sm text-gray-700">ยอมรับนโยบาย PDPA และการเก็บข้อมูล</span>
-            </label>
+            <div class="grid grid-cols-2 gap-4 mb-4"><input type="text" id="regUser" placeholder="Username" class="border px-4 py-2 rounded-lg"><input type="email" id="regEmail" placeholder="Email" class="border px-4 py-2 rounded-lg"><input type="password" id="regPass" placeholder="Password" class="border px-4 py-2 rounded-lg"><input type="password" id="regPassConfirm" placeholder="Confirm Password" class="border px-4 py-2 rounded-lg"></div>
+            <select id="regRole" class="w-full border px-4 py-2 rounded-lg mb-4"><option value="" disabled selected>-- เลือกส่วนงาน --</option><option value="entry_env">ทีม ENV (พลังงาน)</option><option value="entry_pharm">ทีม PHARM (คลังยา)</option><option value="entry_fin">ทีม FIN (การเงิน)</option><option value="entry_serv">ทีม SERV (บริการ)</option><option value="admin">ผู้บริหาร/Admin</option></select>
+            <label class="flex items-center mb-6 cursor-pointer"><input type="checkbox" id="regPdpa" class="w-5 h-5 text-blue-600 rounded"><span class="ml-2 text-sm">ยอมรับนโยบาย PDPA</span></label>
             <button onclick="register()" class="w-full bg-indigo-600 text-white font-semibold py-3 rounded-lg">สมัครสมาชิก</button>
             <p id="regMsg" class="text-center mt-3 text-sm h-5"></p>
             <button onclick="switchAuthView('loginView')" class="w-full mt-4 text-gray-500 text-sm underline">กลับ</button>
         </div>
-
         <div id="forgotView" class="glass-panel rounded-2xl p-8 max-w-md w-full shadow-2xl hidden">
             <h2 class="text-2xl font-bold text-center mb-4">ลืมรหัสผ่าน</h2>
             <input type="email" id="forgotEmail" placeholder="ระบุ Email" class="w-full border p-3 rounded-lg mb-6">
@@ -78,78 +56,68 @@
 
     <div id="mainSection" class="flex w-full h-full hidden">
         <aside id="sidebar" class="bg-slate-900 text-white w-64 flex flex-col z-30 transition-transform absolute md:relative -translate-x-full md:translate-x-0 h-full">
-            <div class="h-16 flex items-center justify-center border-b border-slate-700 px-4">
-                <span class="font-bold tracking-wide">Crisis Command</span>
-            </div>
+            <div class="h-16 flex items-center justify-center border-b border-slate-700 px-4"><span class="font-bold tracking-wide">Crisis Command</span></div>
             <nav class="flex-1 py-4 overflow-y-auto">
                 <p class="px-4 text-xs text-slate-500 mb-2">DASHBOARD</p>
-                <button onclick="switchTab('dashboard')" class="nav-btn active w-full flex items-center px-6 py-3 text-sm" id="btn-dashboard"><i class="fa-solid fa-chart-line w-6"></i> ภาพรวม (Z-Pattern)</button>
-                
+                <button onclick="switchTab('dashboard')" class="nav-btn active w-full flex items-center px-6 py-3 text-sm" id="btn-dashboard"><i class="fa-solid fa-chart-line w-6"></i> ภาพรวม 4 ด้าน</button>
                 <p class="px-4 text-xs text-slate-500 mt-6 mb-2">DATA ENTRY</p>
-                <button onclick="switchTab('form-input')" class="nav-btn w-full flex items-center px-6 py-3 text-sm" id="btn-form-input"><i class="fa-solid fa-keyboard w-6"></i> บันทึกข้อมูลดิบ</button>
-                
+                <button onclick="switchTab('form-input')" class="nav-btn w-full flex items-center px-6 py-3 text-sm" id="btn-form-input"><i class="fa-solid fa-keyboard w-6"></i> บันทึกข้อมูล (Raw Data)</button>
                 <p class="px-4 text-xs text-slate-500 mt-6 mb-2 admin-only hidden">ADMINISTRATION</p>
                 <button onclick="switchTab('settings')" class="nav-btn w-full flex items-center px-6 py-3 text-sm text-slate-300 admin-only hidden" id="btn-settings"><i class="fa-solid fa-sliders w-6"></i> Master Data</button>
             </nav>
             <div class="p-4 bg-slate-950 flex justify-between items-center">
-                <div>
-                    <span id="displayUser" class="block text-sm font-bold text-blue-400"></span>
-                    <span id="displayRole" class="block text-xs text-slate-500"></span>
-                </div>
+                <div><span id="displayUser" class="block text-sm font-bold text-blue-400"></span><span id="displayRole" class="block text-xs text-slate-500"></span></div>
                 <button onclick="logout()" class="text-slate-400 hover:text-red-400"><i class="fa-solid fa-right-from-bracket"></i></button>
             </div>
         </aside>
 
         <div id="main-content" class="flex-1 flex flex-col h-screen overflow-hidden">
             <header class="bg-white shadow-sm h-16 flex items-center justify-between px-6 z-10 border-b">
-                <div class="flex items-center">
-                    <button onclick="document.getElementById('sidebar').classList.toggle('-translate-x-full')" class="md:hidden mr-4 text-gray-500"><i class="fa-solid fa-bars text-xl"></i></button>
-                    <h2 class="text-xl font-bold text-slate-800" id="pageTitle">Strategic Dashboard</h2>
-                </div>
-                <div class="space-x-2 no-print">
-                    <button onclick="exportExcel()" class="bg-green-600 text-white px-3 py-1.5 rounded text-sm hover:bg-green-700"><i class="fa-solid fa-file-excel mr-1"></i> Excel</button>
-                    <button onclick="window.print()" class="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700"><i class="fa-solid fa-file-pdf mr-1"></i> PDF/Print</button>
-                </div>
+                <div class="flex items-center"><button onclick="document.getElementById('sidebar').classList.toggle('-translate-x-full')" class="md:hidden mr-4 text-gray-500"><i class="fa-solid fa-bars text-xl"></i></button><h2 class="text-xl font-bold text-slate-800" id="pageTitle">Strategic Dashboard</h2></div>
+                <div class="space-x-2 no-print"><button onclick="exportExcel()" class="bg-green-600 text-white px-3 py-1.5 rounded text-sm hover:bg-green-700"><i class="fa-solid fa-file-excel mr-1"></i> Excel</button><button onclick="window.print()" class="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700"><i class="fa-solid fa-file-pdf mr-1"></i> PDF/Print</button></div>
             </header>
 
             <main class="flex-1 overflow-y-auto p-6 relative">
-                <div id="loadingOverlay" class="absolute inset-0 bg-white/80 z-50 flex items-center justify-center hidden">
-                    <div class="text-blue-600 font-bold text-lg"><i class="fa-solid fa-spinner fa-spin mr-2"></i>กำลังโหลด...</div>
-                </div>
+                <div id="loadingOverlay" class="absolute inset-0 bg-white/80 z-50 flex items-center justify-center hidden"><div class="text-blue-600 font-bold text-lg"><i class="fa-solid fa-spinner fa-spin mr-2"></i>กำลังดำเนินการ...</div></div>
 
                 <div id="view-dashboard" class="view-section">
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6" id="status-4-grid">
-                        <div id="grid-1" class="p-4 rounded-xl text-center bg-slate-100 border"><i class="fa-solid fa-gas-pump text-2xl mb-1"></i><h4 class="text-sm font-bold">พลังงาน</h4><p class="text-xs" id="g1-txt">รอประเมิน</p></div>
-                        <div id="grid-2" class="p-4 rounded-xl text-center bg-slate-100 border"><i class="fa-solid fa-pills text-2xl mb-1"></i><h4 class="text-sm font-bold">คลังยา</h4><p class="text-xs" id="g2-txt">รอประเมิน</p></div>
-                        <div id="grid-3" class="p-4 rounded-xl text-center bg-slate-100 border"><i class="fa-solid fa-coins text-2xl mb-1"></i><h4 class="text-sm font-bold">การเงิน</h4><p class="text-xs" id="g3-txt">ปกติ (Mock)</p></div>
-                        <div id="grid-4" class="p-4 rounded-xl text-center bg-slate-100 border"><i class="fa-solid fa-truck-medical text-2xl mb-1"></i><h4 class="text-sm font-bold">บริการ</h4><p class="text-xs" id="g4-txt">ปกติ (Mock)</p></div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <div id="grid-ENV" class="p-5 rounded-xl text-center bg-slate-100 border transition-all"><i class="fa-solid fa-gas-pump text-3xl mb-2"></i><h4 class="text-sm font-bold">1. พลังงาน</h4><p class="text-xs mt-1 bg-black/10 px-2 py-1 rounded-full" id="g-txt-ENV">รอข้อมูล</p></div>
+                        <div id="grid-PHARM" class="p-5 rounded-xl text-center bg-slate-100 border transition-all"><i class="fa-solid fa-boxes-stacked text-3xl mb-2"></i><h4 class="text-sm font-bold">2. คลังยา/เวชภัณฑ์</h4><p class="text-xs mt-1 bg-black/10 px-2 py-1 rounded-full" id="g-txt-PHARM">รอข้อมูล</p></div>
+                        <div id="grid-FIN" class="p-5 rounded-xl text-center bg-slate-100 border transition-all"><i class="fa-solid fa-coins text-3xl mb-2"></i><h4 class="text-sm font-bold">3. การเงิน (สภาพคล่อง)</h4><p class="text-xs mt-1 bg-black/10 px-2 py-1 rounded-full" id="g-txt-FIN">รอข้อมูล</p></div>
+                        <div id="grid-SERV" class="p-5 rounded-xl text-center bg-slate-100 border transition-all"><i class="fa-solid fa-truck-medical text-3xl mb-2"></i><h4 class="text-sm font-bold">4. บริการ (Telemed)</h4><p class="text-xs mt-1 bg-black/10 px-2 py-1 rounded-full" id="g-txt-SERV">รอข้อมูล</p></div>
                     </div>
 
                     <div class="bg-white p-4 rounded-xl shadow-sm border mb-4 flex gap-4 items-end no-print">
-                        <div><label class="block text-xs text-slate-500 mb-1">หมวดหมู่</label><select id="filterType" onchange="renderChart()" class="border p-2 rounded text-sm"><option value="ALL">ทั้งหมด</option><option value="ENV">พลังงาน (ENV)</option><option value="PHARM">คลังยา (PHARM)</option></select></div>
+                        <div><label class="block text-xs text-slate-500 mb-1">หมวดหมู่</label><select id="filterType" onchange="renderChart()" class="border p-2 rounded text-sm"><option value="ALL">ทั้งหมด</option><option value="ENV">พลังงาน</option><option value="PHARM">คลังยา</option><option value="FIN">การเงิน</option><option value="SERV">บริการ</option></select></div>
                         <div><label class="block text-xs text-slate-500 mb-1">ช่วงเวลา</label><select id="filterTime" onchange="renderChart()" class="border p-2 rounded text-sm"><option value="7">7 วันย้อนหลัง</option><option value="30" selected>30 วันย้อนหลัง</option></select></div>
                     </div>
-
                     <div class="bg-white p-6 rounded-xl shadow-sm border">
-                        <h3 class="font-bold text-slate-700 mb-4">Run Chart: ปริมาณคงเหลือและเป้าหมาย (Days of Stock)</h3>
+                        <h3 class="font-bold text-slate-700 mb-4">Run Chart: สัดส่วนการบรรลุเป้าหมาย (Days of Stock / % Target)</h3>
                         <div class="w-full h-80"><canvas id="mainChart"></canvas></div>
                     </div>
                 </div>
 
-                <div id="view-form-input" class="view-section hidden max-w-4xl mx-auto">
+                <div id="view-form-input" class="view-section hidden max-w-5xl mx-auto">
                     <div class="bg-white rounded-xl shadow-sm border-t-4 border-blue-500 p-6">
-                        <h3 class="text-xl font-bold mb-4">บันทึกข้อมูล Raw Data</h3>
-                        <div class="mb-4 flex gap-4">
-                            <select id="inputDept" class="border p-2 rounded flex-1"><option value="OPD">แผนกผู้ป่วยนอก</option><option value="IPD">แผนกผู้ป่วยใน</option><option value="Stock">คลังกลาง</option></select>
+                        <div class="flex justify-between items-end mb-6">
+                            <div><h3 class="text-xl font-bold">บันทึกข้อมูลดิบ (Raw Data)</h3><p class="text-sm text-slate-500">กรอกยอดคงเหลือปัจจุบัน ระบบจะคำนวณวันใช้งาน/เปอร์เซ็นต์ให้ทันที</p></div>
+                            <select id="inputDept" class="border p-2 rounded no-print"><option value="กลาง">ส่วนกลาง</option><option value="OPD">ผู้ป่วยนอก</option><option value="IPD">ผู้ป่วยใน</option></select>
                         </div>
-                        <table class="w-full text-sm text-left border rounded-lg">
-                            <thead class="bg-slate-100">
-                                <tr><th class="p-3">ประเภท</th><th class="p-3">รหัส/ชื่อรายการ</th><th class="p-3 bg-blue-50 text-center">ยอดคงเหลือ (Unit)</th></tr>
-                            </thead>
-                            <tbody id="input-tbody">
-                                </tbody>
-                        </table>
-                        <button onclick="submitRawData()" class="mt-4 w-full bg-blue-600 text-white font-bold py-3 rounded-lg no-print">บันทึกข้อมูลเข้าระบบ</button>
+                        
+                        <div class="overflow-x-auto rounded-lg border border-slate-200">
+                            <table class="w-full text-sm text-left">
+                                <thead class="bg-slate-100 text-slate-700">
+                                    <tr><th class="p-3">หมวด</th><th class="p-3">รหัส/ชื่อรายการ</th><th class="p-3 bg-blue-50 text-center">ยอดปัจจุบัน (Raw)</th><th class="p-3 text-center hidden md:table-cell">อ้างอิงเป้าหมาย</th><th class="p-3 text-center">ผลลัพธ์การคำนวณ</th><th class="p-3 text-center">สถานะ</th></tr>
+                                </thead>
+                                <tbody id="input-tbody">
+                                    </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-6 p-4 bg-blue-50 rounded-lg text-sm text-blue-800 flex justify-between items-center no-print">
+                            <span><i class="fa-solid fa-circle-info mr-2"></i>เฉพาะตัวเลขในช่องสีฟ้าเท่านั้นที่จะถูกบันทึกลงฐานข้อมูล</span>
+                            <button onclick="submitRawData()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-8 rounded shadow"><i class="fa-solid fa-cloud-arrow-up mr-2"></i>บันทึกเข้าระบบ</button>
+                        </div>
                     </div>
                 </div>
 
@@ -158,11 +126,11 @@
                         <div class="flex justify-between mb-4"><h3 class="text-xl font-bold">จัดการ Master Data</h3><button onclick="addMasterRow()" class="bg-slate-200 px-3 py-1 rounded text-sm"><i class="fa-solid fa-plus"></i> เพิ่มรายการ</button></div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm text-left border">
-                                <thead class="bg-slate-100"><tr><th class="p-2">Type</th><th class="p-2">Code</th><th class="p-2">Name</th><th class="p-2">AvgUse/Day</th><th class="p-2">Target(Days)</th><th class="p-2">จัดการ</th></tr></thead>
+                                <thead class="bg-slate-100"><tr><th class="p-2">Type (ENV/PHARM/FIN/SERV)</th><th class="p-2">Code</th><th class="p-2">Name</th><th class="p-2">AvgUse (ตัวหาร)</th><th class="p-2">Target (เป้า)</th><th class="p-2">จัดการ</th></tr></thead>
                                 <tbody id="master-tbody"></tbody>
                             </table>
                         </div>
-                        <button onclick="saveMasterData()" class="mt-4 bg-slate-800 text-white font-bold py-2 px-6 rounded-lg">บันทึก Master Data ไปยังฐานข้อมูล</button>
+                        <button onclick="saveMasterData()" class="mt-4 bg-slate-800 text-white font-bold py-2 px-6 rounded-lg">อัปเดตฐานข้อมูล</button>
                     </div>
                 </div>
 
