@@ -38,7 +38,11 @@ async function login(isGuest) {
             document.getElementById('displayUser').innerText = currentUser.username;
             document.getElementById('displayRole').innerText = `Role: ${currentUser.role}`;
             
+            // จัดการสิทธิ์ Admin (โชว์/ซ่อน เมนู Master Data)
             document.querySelectorAll('.admin-only').forEach(el => currentUser.role === 'admin' ? el.classList.remove('hidden') : el.classList.add('hidden'));
+            
+            // 🛑 จัดการสิทธิ์ Guest (โชว์/ซ่อน เมนูบันทึกข้อมูล Raw Data)
+            document.querySelectorAll('.not-guest').forEach(el => currentUser.role === 'guest' ? el.classList.add('hidden') : el.classList.remove('hidden'));
             
             await fetchAppData();
         } else {
