@@ -35,16 +35,37 @@ async function login(isGuest) {
             document.getElementById('authContainer').classList.add('hidden');
             document.getElementById('mainSection').classList.remove('hidden');
             document.getElementById('body-bg').classList.remove('bg-gradient-premium');
+            // ... (โค้ดก่อนหน้า) ...
             document.getElementById('displayUser').innerText = currentUser.username;
             document.getElementById('displayRole').innerText = `Role: ${currentUser.role}`;
             
             // จัดการสิทธิ์ Admin (โชว์/ซ่อน เมนู Master Data)
-            document.querySelectorAll('.admin-only').forEach(el => currentUser.role === 'admin' ? el.classList.remove('hidden') : el.classList.add('hidden'));
+            document.querySelectorAll('.admin-only').forEach(el => {
+                if (currentUser.role === 'admin') {
+                    el.classList.remove('hidden');
+                } else {
+                    el.classList.add('hidden');
+                }
+            });
             
-            // 🛑 จัดการสิทธิ์ Guest (โชว์/ซ่อน เมนูบันทึกข้อมูล Raw Data)
-            document.querySelectorAll('.not-guest').forEach(el => currentUser.role === 'guest' ? el.classList.add('hidden') : el.classList.remove('hidden'));
+            // 🛑 จัดการสิทธิ์ Guest (โชว์/ซ่อน เมนู Data Entry) แบบบังคับ
+            document.querySelectorAll('.not-guest').forEach(el => {
+                // ถ้า Role เป็น guest ให้ "ซ่อน" เมนูที่ต้องกรอกข้อมูล
+                if (currentUser.role === 'guest') {
+                    el.classList.add('hidden'); 
+                    el.style.display = 'none'; // ใช้ Style ช่วยบังคับซ่อนอีกชั้น
+                } else {
+                    // ถ้าไม่ใช่ guest (เป็น admin หรือคนอื่นๆ) ให้ "โชว์" เมนู
+                    el.classList.remove('hidden');
+                    el.style.display = ''; 
+                }
+            });
+
+            // บังคับให้โหลดหน้าแรก (Dashboard) ทันทีหลัง Login เพื่อกันคนแอบกดเมนู Data Entry ค้างไว้
+            switchTab('dashboard'); 
             
             await fetchAppData();
+            // ... (โค้ดถัดไป) ...
         } else {
             document.getElementById('logMsg').innerText = result.message;
         }
